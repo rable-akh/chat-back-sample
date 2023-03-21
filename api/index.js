@@ -49,13 +49,15 @@ app.get('/', (req, res) => {
 });
 
 app.post('/login', async (req, res) => {
-    console.log(req.body);
-    var cu = await usersMod.findOneAndUpdate({user: req.body.user}, {connected: true})
+    var cu = await usersMod.count({user: req.body.user})
     if(cu === 0){
         await usersMod.create({
-            user: username
+            user: req.body.user,
+            connected: true
         })
         cu = await usersMod.find()
+    } else {
+        cu = await usersMod.findOneAndUpdate({user: req.body.user}, {connected: true})
     }
     return res.json(cu)
 });
@@ -93,13 +95,26 @@ io.use(async (socket, next) => {
     }
     console.log(`⚡: ${socket.id} current id!`);
     socket.username = username;
-    const cu = await usersMod.findOneAndUpdate({user: username}, {connected: true, socketID: socket.id})
-    socket.userId = (cu._id).toString();
-    const userData = await usersMod.find()
+    // const cu = await usersMod.findOneAndUpdate({user: username}, {connected: true, socketID: socket.id})
+    // socket.userId = (cu._id).toString();
+    // const userData = await usersMod.find()
+    // if(cu === 0){
+    //     await usersMod.create({
+    //         user: username
+    //     })
+    // }
+
+    var cu = await usersMod.count({user: username})
     if(cu === 0){
         await usersMod.create({
-            user: username
+            user: username,
+            connected: true
         })
+        cu = await usersMod.find()
+        socket.userId = (cu._id).toString();
+    } else {
+        cu = await usersMod.findOneAndUpdate({user: username}, {connected: true})
+        socket.userId = (cu._id).toString();
     }
     
     socket.join(socket.userId)
@@ -119,12 +134,22 @@ io.on('connection', async (socket) => {
 
     console.log(`USR : ${socket.username} user just connected!`);
     socket.on('users', async (msg) => {
-        const cu = await usersMod.findOneAndUpdate({user: msg.user}, {connected: true, socketID: socket.id})
-        const userData = await usersMod.find()
+        // const cu = await usersMod.findOneAndUpdate({user: msg.user}, {connected: true, socketID: socket.id})
+        // const userData = await usersMod.find()
+        // if(cu === 0){
+        //     await usersMod.create({
+        //         user: msg.user
+        //     })
+        // }
+        var cu = await usersMod.count({user: req.body.user})
         if(cu === 0){
             await usersMod.create({
-                user: msg.user
+                user: username,
+                connected: true
             })
+            cu = await usersMod.find()
+        } else {
+            cu = await usersMod.findOneAndUpdate({user: req.body.user}, {connected: true})
         }
         // io.emit('currentUser', cu)
         io.emit('activeUserResponse', userData)
