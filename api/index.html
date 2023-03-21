@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>Socket.IO chat</title>
+    <style>
+        body { margin: 0; padding-bottom: 3rem; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+
+        #form { background: rgba(0, 0, 0, 0.15); padding: 0.25rem; position: fixed; bottom: 0; left: 0; right: 0; display: flex; height: 3rem; box-sizing: border-box; backdrop-filter: blur(10px); }
+        #input { border: none; padding: 0 1rem; flex-grow: 1; border-radius: 2rem; margin: 0.25rem; }
+        #input:focus { outline: none; }
+        #form > button { background: #333; border: none; padding: 0 1rem; margin: 0.25rem; border-radius: 3px; outline: none; color: #fff; }
+
+        #messages { list-style-type: none; margin: 0; padding: 0; }
+        #messages > li { padding: 0.5rem 1rem; }
+        #messages > li:nth-child(odd) { background: #efefef; }
+        </style>
+            <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-GLhlTQ8iRABdZLl6O3oVMWSktQOp6b7In1Zl3/Jr59b6EGGoI1aFkw7cmDA6j6gD" crossorigin="anonymous">
+
+    </head>
+    <body>
+        <ul id="messages"></ul>
+        <form id="form" action="">
+        <input id="input" autocomplete="off" /><button>Send</button>
+        </form>
+
+        <div id = "loginPage" class = "container text-center"> 
+		
+            <div class = "row"> 
+               <div class = "col-md-4 col-md-offset-4">
+                   
+                  <h2>WebRTC Voice Demo. Please sign in</h2>
+                   
+                  <label for = "usernameInput" class = "sr-only">Login</label> 
+                  <input type = "email" id = "usernameInput" 
+                     class = "form-control formgroup"
+                     placeholder = "Login" required = "" autofocus = ""> 
+                  <button id = "loginBtn" class = "btn btn-lg btn-primary btnblock">
+                     Sign in</button> 
+               </div> 
+            </div> 
+               
+         </div>
+           
+         <div id = "callPage" class = "call-page">
+           
+            <div class = "row"> 
+               
+               <div class = "col-md-6 text-right"> 
+                  Local audio: <audio id = "localAudio" 
+                  controls autoplay></audio> 
+               </div>
+                   
+               <div class = "col-md-6 text-left"> 
+                  Remote audio: <audio id = "remoteAudio" 
+                     controls autoplay></audio> 
+               </div> 
+                   
+            </div> 
+               
+            <div class = "row text-center"> 
+               <div class = "col-md-12"> 
+                  <input id = "callToUsernameInput" 
+                     type = "text" placeholder = "username to call" /> 
+                  <button id = "callBtn" class = "btn-success btn">Call</button> 
+                  <button id = "hangUpBtn" class = "btn-danger btn">Hang Up</button> 
+               </div> 
+            </div>
+               
+         </div>
+    </body>
+    <script src="https://cdn.socket.io/4.5.4/socket.io.min.js"></script>
+    <script>
+        var socket = io("ws://localhost:4000/");
+
+        var messages = document.getElementById('messages');
+        var form = document.getElementById('form');
+        var input = document.getElementById('input');
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            if (input.value) {
+                socket.emit('chat message', input.value);
+                input.value = '';
+            }
+        });
+        socket.on("chat message", (msg) => {
+            console.log(msg);
+        });
+        socket.on('chat message', function(msg) {
+            
+
+            console.log(msg);
+            var item = document.createElement('li');
+            item.textContent = msg;
+            messages.appendChild(item);
+            window.scrollTo(0, document.body.scrollHeight);
+        });
+
+
+
+
+
+
+        var loginPage = document.querySelector('#loginPage'); 
+            var usernameInput = document.querySelector('#usernameInput'); 
+            var loginBtn = document.querySelector('#loginBtn');
+            
+            var callPage = document.querySelector('#callPage'); 
+            var callToUsernameInput = document.querySelector('#callToUsernameInput');
+            var callBtn = document.querySelector('#callBtn');
+            
+            var hangUpBtn = document.querySelector('#hangUpBtn');
+            
+            callPage.style.display = "none";
+            
+            // Login when the user clicks the button 
+            loginBtn.addEventListener("click", function (event) { 
+            name = usernameInput.value;
+                
+            if (name.length > 0) { 
+                send({
+                    type: "login", 
+                    name: name 
+                }); 
+            } 
+                
+            }); 
+            
+            function handleLogin(success) { 
+            if (success === false) { 
+                alert("Ooops...try a different username"); 
+            } else { 
+                loginPage.style.display = "none"; 
+                callPage.style.display = "block"; 
+                    
+                //********************** 
+                //Starting a peer connection 
+                //**********************
+                            
+            } 
+                
+            };
+    </script>
+</html>
